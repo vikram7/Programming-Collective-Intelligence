@@ -179,3 +179,22 @@ puts "===== movie_ratings_predictions_hash ===="
 puts
 
 p movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics))
+
+puts
+puts "===== sorted results ===="
+puts
+
+p movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| predicted_rating}
+
+puts
+puts "==== We recommend you see the following movie ===="
+puts
+
+a = movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| -predicted_rating}
+p a[0][0]
+
+puts "Your predicted rating for #{a[0][0]} is #{a[0][1].round(2)}"
+
+puts
+puts
+
