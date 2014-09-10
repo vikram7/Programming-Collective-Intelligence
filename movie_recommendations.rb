@@ -1,23 +1,73 @@
 require 'pry'
+require 'csv'
 
-critics = {'Lisa Rose'=> {'Lady in the Water'=> 2.5, 'Snakes on a Plane'=> 3.5,
-      'Just My Luck'=> 3.0, 'Superman Returns'=> 3.5, 'You, Me and Dupree'=> 2.5,
-      'The Night Listener'=> 3.0},
-     'Gene Seymour'=> {'Lady in the Water'=> 3.0, 'Snakes on a Plane'=> 3.5,
-      'Just My Luck'=> 1.5, 'Superman Returns'=> 5.0, 'The Night Listener'=> 3.0,
-      'You, Me and Dupree'=> 3.5},
-     'Michael Phillips'=> {'Lady in the Water'=> 2.5, 'Snakes on a Plane'=> 3.0,
-      'Superman Returns'=> 3.5, 'The Night Listener'=> 4.0},
-     'Claudia Puig'=> {'Snakes on a Plane'=> 3.5, 'Just My Luck'=> 3.0,
-      'The Night Listener'=> 4.5, 'Superman Returns'=> 4.0,
-      'You, Me and Dupree'=> 2.5},
-     'Mick LaSalle'=> {'Lady in the Water'=> 3.0, 'Snakes on a Plane'=> 4.0,
-      'Just My Luck'=> 2.0, 'Superman Returns'=> 3.0, 'The Night Listener'=> 3.0,
-      'You, Me and Dupree'=> 2.0},
-     'Jack Matthews'=> {'Lady in the Water'=> 3.0, 'Snakes on a Plane'=> 4.0,
-      'The Night Listener'=> 3.0, 'Superman Returns'=> 5.0, 'You, Me and Dupree'=> 3.5}}
+# critics = {'Lisa Rose'=> {'Lady in the Water'=> 2.5, 'Snakes on a Plane'=> 3.5,
+#       'Just My Luck'=> 3.0, 'Superman Returns'=> 3.5, 'You, Me and Dupree'=> 2.5,
+#       'The Night Listener'=> 3.0},
+#      'Gene Seymour'=> {'Lady in the Water'=> 3.0, 'Snakes on a Plane'=> 3.5,
+#       'Just My Luck'=> 1.5, 'Superman Returns'=> 5.0, 'The Night Listener'=> 3.0,
+#       'You, Me and Dupree'=> 3.5},
+#      'Michael Phillips'=> {'Lady in the Water'=> 2.5, 'Snakes on a Plane'=> 3.0,
+#       'Superman Returns'=> 3.5, 'The Night Listener'=> 4.0},
+#      'Claudia Puig'=> {'Snakes on a Plane'=> 3.5, 'Just My Luck'=> 3.0,
+#       'The Night Listener'=> 4.5, 'Superman Returns'=> 4.0,
+#       'You, Me and Dupree'=> 2.5},
+#      'Mick LaSalle'=> {'Lady in the Water'=> 3.0, 'Snakes on a Plane'=> 4.0,
+#       'Just My Luck'=> 2.0, 'Superman Returns'=> 3.0, 'The Night Listener'=> 3.0,
+#       'You, Me and Dupree'=> 2.0},
+#      'Jack Matthews'=> {'Lady in the Water'=> 3.0, 'Snakes on a Plane'=> 4.0,
+#       'The Night Listener'=> 3.0, 'Superman Returns'=> 5.0, 'You, Me and Dupree'=> 3.5}}
 
-you = {'Toby'=> {'Snakes on a Plane'=>4.5,'You, Me and Dupree'=>1.0,'Superman Returns'=>4.0}}
+you = {'Toby'=> {242=>3,
+   393=>4,
+   381=>4,
+   251=>3,
+   655=>5,
+   67=>5,
+   306=>4,
+   238=>4,
+   663=>5,
+   111=>4,
+   580=>2,
+   25=>4,
+   286=>5,
+   94=>3,
+   692=>5,
+   8=>5,
+   428=>4,
+   1118=>4,
+   70=>3,
+   66=>3,
+   257=>2,
+   108=>4,
+   202=>3,
+   340=>3,
+   287=>3,
+   116=>3,
+   382=>4,
+   285=>5,
+   1241=>3,
+   1007=>4,
+   411=>4}
+ }
+
+parsed_file = CSV.read('./100_000_ratings/u.data', { :col_sep => "\t"})
+parsed_items = CSV.read('./100_000_ratings/u.item', { :col_sep => "|"})
+
+critics = Hash.new {}
+id_to_movie_hash = Hash.new
+
+parsed_file.each do |each_user_movie_rating_timestamp|
+  if critics.has_key?(each_user_movie_rating_timestamp[0].to_i)
+    critics[each_user_movie_rating_timestamp[0].to_i][each_user_movie_rating_timestamp[1].to_i] = each_user_movie_rating_timestamp[2].to_i
+  else
+    critics[each_user_movie_rating_timestamp[0].to_i] = {each_user_movie_rating_timestamp[1].to_i => each_user_movie_rating_timestamp[2].to_i}
+  end
+end
+
+parsed_items.each do |each_row|
+  id_to_movie_hash[each_row[0].to_i] = each_row[1]
+end
 
 def sim_pearson(critics_hash, toby_hash)
   mutually_related_array = []
@@ -187,14 +237,14 @@ puts
 p movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| predicted_rating}
 
 puts
-puts "==== We recommend you see the following movie ===="
+puts "==== We recommend you see the following 20 movies ===="
 puts
 
 a = movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| -predicted_rating}
-p a[0][0]
 
-puts "Your predicted rating for #{a[0][0]} is #{a[0][1].round(2)}"
-
-puts
-puts
+for i in 0..19
+  puts id_to_movie_hash[a[i][0]]
+  puts "your predicted rating for this movie: #{a[i][1].round(2)}"
+  puts
+end
 
