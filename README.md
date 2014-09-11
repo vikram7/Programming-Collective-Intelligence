@@ -2,4 +2,5 @@ Command-line based movie recommendation app based on Toby Segaran's Programming 
 
 To-do:
 - sanitize user input (specifically when movie string title isn't in the database)
-- Refactor algorithm code
+- refactor algorithm code
+- optimize for time
