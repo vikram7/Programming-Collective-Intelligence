@@ -1,9 +1,23 @@
-require 'pry'
 require 'csv'
+require 'pry'
+require 'colorize'
 
+# #100K data
+# parsed_file = CSV.read('./100_000_ratings/u.data', { :col_sep => "\t"})
+# parsed_items = CSV.read('./100_000_ratings/u.item', { :col_sep => "|"})
 
-parsed_file = CSV.read('./100_000_ratings/u.data', { :col_sep => "\t"})
-parsed_items = CSV.read('./100_000_ratings/u.item', { :col_sep => "|"})
+# 1M items
+
+system "clear"
+
+puts "Parsing movie & rating data . . . "
+total_start_time = Time.now
+parse_start = Time.now
+parsed_file = CSV.read('./1M_items/ratings.dat', { :col_sep => "::"})
+parsed_items = CSV.read('./1M_items/movies.dat', { :col_sep => "::"})
+parse_end = Time.now
+puts "Parsing done!".light_blue
+puts "Total data parsing time : " + (parse_end - parse_start).to_s + " seconds"
 
 critics = Hash.new {}
 id_to_movie_hash = Hash.new
@@ -157,6 +171,111 @@ def movie_rating_predictions_hash(create_hash_of_expected_ratings, sim_sum_per_m
   final_output
 end
 
+# ######
+# ### USER INPUT AREA, WILL ADD BACK CODE LATER
+# ######
+# binding.pry
+# system "clear"
+# puts "Ok, we need you to rate 20 movies before we can give you a good recommendation, so bear with us!".blue.on_white
+# input_hash = Hash.new
+# movie_num = ""
+# rating = ""
+
+# for i in 0..19
+#   puts "#{20-i} left to rate!!!".blue.on_red
+#   print "Enter the name of a movie you want to rate and we will see if its in our database: ".yellow.underline
+#   movie = gets.chomp.to_s
+#   movie_to_id_hash.keys.each do |x|
+#     if x.downcase.include? movie.downcase
+#       puts movie_to_id_hash[x].to_s + ": " + x
+#     end
+#   end
+
+#   puts
+#   while !movie_num.match(/^\d+$/)
+#     print "Enter the number of the movie you want to rate: ".green.underline
+#     movie_num = gets.chomp
+#     if !movie_num.match(/^\d+$/)
+#       puts "Sorry, that isn't a valid entry. Enter an integer associated to the movie you want to rate. Try again.".red
+#     end
+#   end
+#   puts
+
+#   while !rating.match(/^\d+(?:\.\d+)?$/)
+#     print "What do you want to rate it (1-5)?: ".green.underline
+#     rating = gets.chomp
+#     if !rating.match(/^\d+(?:\.\d+)?$/)
+#       puts "Sorry, that isn't a valid entry. Enter a number for your rating. Try again.".red
+#     end
+#   end
+
+#   movie_num = movie_num.to_i
+#   rating = rating.to_f
+#   input_hash[movie_num] = rating
+#   puts
+
+#   puts "These are your choices so far: ".yellow.on_red
+#   input_hash.each do |each_movie, rating|
+#     puts id_to_movie_hash[each_movie] + ": " + rating.to_s
+#   end
+#   rating = ""
+#   movie_num = ""
+
+#   puts
+# end
+
+puts
+puts "Calculating your recommendations . . . "
+
+# you = {'Toby'=> input_hash}
+
+you = {'Toby' => {1=>2.5,
+ 2=>3.5,
+ 3=>4.5,
+ 4=>5.0,
+ 5=>4.0,
+ 6=>4.5,
+ 7=>3.5,
+ 8=>2.0,
+ 9=>5.0,
+ 10=>1.0,
+ 11=>5.0,
+ 12=>5.0,
+ 13=>3.0,
+ 14=>5.0,
+ 15=>3.0,
+ 16=>2.5,
+ 17=>2.0,
+ 18=>1.5,
+ 19=>3.0,
+ 20=>4.5,
+ 21=>4.0,
+ 22=>5.0,
+ 23=>5.0,
+ 24=>5.0,
+ 25=>3.0,
+ 26=>2.5,
+ 27=>5.0,
+ 28=>4.5,
+ 29=>1.0,
+50=>5.0}}
+
+a = movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| -predicted_rating}
+
+puts
+puts "==== We recommend you see the following 20 movies ===="
+puts
+
+for i in 0..19
+  puts id_to_movie_hash[a[i][0]].light_blue
+  puts "your predicted rating for this movie: #{a[i][1].round(2)}".green
+  puts
+end
+
+ending_time = Time.now
+puts "Total Time: " + (ending_time - total_start_time).to_s + " seconds"
+
+
 # puts
 # puts "===== pearson sim scores for each critic: hash_of_sims_of_all_critics ===="
 # puts
@@ -192,44 +311,3 @@ end
 # puts
 
 # p movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| predicted_rating}
-
-# puts
-# puts "==== We recommend you see the following 20 movies ===="
-# puts
-
-puts "Ok, we need you to rate 20 movies before we can give you a good recommendation, so bear with us!"
-input_hash = Hash.new
-
-for i in 0..19
-  puts "#{20-i} left to rate!!!"
-
-  out_hash = Hash.new
-  puts "Enter a movie you want to rate"
-  movie = gets.chomp.to_s
-  movie_to_id_hash.keys.each do |x|
-    if x.downcase.include? movie.downcase
-      puts movie_to_id_hash[x].to_s + ": " + x
-    end
-  end
-
-  puts "Enter the number of the movie you want to rate"
-  movie_num = gets.chomp.to_i
-  puts
-
-  puts "What do you want to rate it (1-5)"
-  rating = gets.chomp.to_f
-  puts
-
-  input_hash[movie_num] = rating
-end
-
-you = {'Toby'=> input_hash}
-
-a = movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| -predicted_rating}
-
-for i in 0..19
-  puts id_to_movie_hash[a[i][0]]
-  puts "your predicted rating for this movie: #{a[i][1].round(2)}"
-  puts
-end
-
