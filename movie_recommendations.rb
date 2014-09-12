@@ -1,6 +1,9 @@
 require 'csv'
 require 'pry'
 require 'colorize'
+require 'ruby-prof'
+
+RubyProf.start
 
 # #100K data
 # parsed_file = CSV.read('./100_000_ratings/u.data', { :col_sep => "\t"})
@@ -13,16 +16,13 @@ system "clear"
 puts "Parsing movie & rating data . . . "
 total_start_time = Time.now
 parse_start = Time.now
-parsed_file = CSV.read('./1M_items/ratings.dat', { :col_sep => "::"})
-parsed_items = CSV.read('./1M_items/movies.dat', { :col_sep => "::"})
-parse_end = Time.now
-puts "Parsing done!".light_blue
-puts "Total data parsing time : " + (parse_end - parse_start).to_s + " seconds"
+# parsed_file = CSV.read('./1M_items/ratings.dat', { :col_sep => "::"})
+# parsed_items = CSV.read('./1M_items/movies.dat', { :col_sep => "::"})
 
 critics = Hash.new {}
 id_to_movie_hash = Hash.new
 
-parsed_file.each do |each_user_movie_rating_timestamp|
+CSV.foreach("1M_items/ratings.dat", col_sep: "::" ) do |each_user_movie_rating_timestamp|
   if critics.has_key?(each_user_movie_rating_timestamp[0].to_i)
     critics[each_user_movie_rating_timestamp[0].to_i][each_user_movie_rating_timestamp[1].to_i] = each_user_movie_rating_timestamp[2].to_i
   else
@@ -30,9 +30,14 @@ parsed_file.each do |each_user_movie_rating_timestamp|
   end
 end
 
-parsed_items.each do |each_row|
+CSV.foreach("1M_items/movies.dat", col_sep: "::") do |each_row|
   id_to_movie_hash[each_row[0].to_i] = each_row[1]
 end
+
+parse_end = Time.now
+puts "Parsing done!".light_blue
+puts "Total data parsing time : " + (parse_end - parse_start).to_s + " seconds"
+
 
 movie_to_id_hash = Hash.new
 
@@ -311,3 +316,8 @@ puts "Total Time: " + (ending_time - total_start_time).to_s + " seconds"
 # puts
 
 # p movie_rating_predictions_hash(create_hash_of_expected_ratings(critics, you), sim_sum_per_movie(hash_of_sims_of_all_critics(critics, you), create_hash_of_expected_ratings(critics,you), critics)).sort_by {|movie, predicted_rating| predicted_rating}
+
+
+result = RubyProf.stop
+printer = RubyProf::FlatPrinter.new(result)
+printer.print(STDOUT)
